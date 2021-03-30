@@ -37,7 +37,7 @@ class AuthError(Exception):
 def get_token_auth_header():
     auth_header = request.headers.get('Authorization', None)
 
-    if not auth:
+    if not auth_header:
         raise AuthError({"code": "authorization_header_missing",
                          "description":
                          "Authorization header is expected"}, 401)
@@ -55,7 +55,7 @@ def get_token_auth_header():
                          "description":
                          "Token not found"}, 401)
 
-    elif header_parts > 2:
+    elif len(header_parts) > 2:
         raise AuthError({"code": "invalid_header",
                          "description":
                          "Authorization header must be"
@@ -64,29 +64,6 @@ def get_token_auth_header():
     token = header_parts[1]
     return token
 
-
-'''
-@TODO implement check_permissions(permission, payload) method
-    @INPUTS
-        permission: string permission (i.e. 'post:drink')
-        payload: decoded jwt payload
-
-    it should raise an AuthError if permissions are not included in the payload
-        !!NOTE check your RBAC settings in Auth0
-    it should raise an AuthError if the requested permission string is not in the payload permissions array
-    return true otherwise DONE
-'''
-
-
-def check_permissions(permission, payload):
-
-    if 'permissions' not in payload:
-        abort(400)
-
-    if permission not in payload['permissions']:
-        abort(403)
-
-    return True
 
 
 '''
@@ -162,6 +139,16 @@ def verify_decode_jwt(token):
     }, 400)
 
 
+def check_permissions(permission, payload):
+
+    if 'permissions' not in payload:
+        abort(400)
+
+    if permission not in payload['permissions']:
+        abort(403)
+
+    return True
+
 '''
 @TODO implement @requires_auth(permission) decorator method
     @INPUTS
@@ -179,11 +166,9 @@ def requires_auth(permission=''):
         @wraps(f)
         def wrapper(*args, **kwargs):
             token = get_token_auth_header()
-            try:
-                payload = verify_decode_jwt(token)
-            except BaseException:
-                abort(401)
+            payload = verify_decode_jwt(token)
             check_permissions(permission, payload)
+            
             return f(payload, *args, **kwargs)
 
         return wrapper

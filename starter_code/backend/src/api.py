@@ -4,15 +4,22 @@ from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
-from database.models import db_drop_and_create_all, setup_db, Drink
-from auth.auth import AuthError, requires_auth
+from .database.models import db_drop_and_create_all, setup_db, Drink
+from .auth.auth import AuthError, requires_auth
+
 
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
 
-db_drop_and_create_all()
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-control-Allow-Headers', 'Content-Type, Authorization')
+    response.headers.add('Access-control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+
+    return response
+
 
 ## ROUTES
 '''
@@ -22,8 +29,21 @@ db_drop_and_create_all()
         it should contain only the drink.short() data representation
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
-'''
 
+'''
+@app.route('/drinks', methods=['GET'])
+def drinks_menu():
+    all_drinks = Drink.query.order_by(Drink.id).all()
+    
+    if all_drinks is None:
+        abort(404)
+
+    drinks = [all_drinks.short() for drink in all_drinks]
+    
+    return jsonify({
+        'success': True,
+        'drinks': drinks
+    })
 
 '''
 @TODO implement endpoint
@@ -32,8 +52,22 @@ db_drop_and_create_all()
         it should contain the drink.long() data representation
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
-'''
 
+'''
+@app.route('/drinks-detail', methods=['GET'])
+@requires_auth('get:drinks-detail')
+def drink_details(jwt):
+    all_drinks = Drink.query.order_by(Drink.id).all()
+    
+    if all_drinks is None:
+        abort(404)
+    
+    drinks = [all_drinks.long() for drink in all_drinks]
+
+    return jsonify({
+        'success': True,
+        'drinks': drinks
+    })
 
 '''
 @TODO implement endpoint
@@ -83,21 +117,13 @@ def unprocessable(error):
                     "message": "unprocessable"
                     }), 422
 
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
+@app.errorhandler(404)
+def unprocessable(error):
+    return jsonify({
                     "success": False, 
                     "error": 404,
                     "message": "resource not found"
                     }), 404
-
-'''
-
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above 
-'''
 
 
 '''
