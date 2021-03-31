@@ -97,9 +97,8 @@ def add_drink(payload):
             'drinks': [new_drink.long()]
         }), 200
 
-    except Exception as e :
-        print(e)
-        #abort(405)
+    except Exception:
+        abort(405)
 
 
 '''
