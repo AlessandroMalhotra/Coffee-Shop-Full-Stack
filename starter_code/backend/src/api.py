@@ -64,7 +64,6 @@ def drink_details(payload):
         abort(404)
     
     drinks = [drink.long() for drink in all_drinks]
-    print(drinks)
 
     return jsonify({
         'success': True,
