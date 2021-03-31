@@ -39,7 +39,7 @@ def drinks_menu():
     if all_drinks is None:
         abort(404)
 
-    drinks = [all_drinks.short() for drink in all_drinks]
+    drinks = [drink.short() for drink in all_drinks]
     
     return jsonify({
         'success': True,
@@ -63,7 +63,7 @@ def drink_details(payload):
     if all_drinks is None:
         abort(404)
     
-    drinks = [all_drinks.long() for drink in all_drinks]
+    drinks = [drink.long() for drink in all_drinks]
     print(drinks)
 
     return jsonify({
