@@ -99,7 +99,7 @@ def add_drink(payload):
         }), 200
 
     except Exception:
-        abort(405)
+        abort(400)
 
 
 """
@@ -188,16 +188,16 @@ def unprocessable(error):
     }), 404
 
 
-''' Error handler for incorrect method type. ''''
+''' Error handler for incorrect method type. '''
 
 
-@app.errorhandler(405)
+@app.errorhandler(400)
 def method_not_allowed(error):
     return jsonify({
         'success': False,
-        'error': 405,
-        'message': 'method not allowed'
-    }), 405
+        'error': 400,
+        'message': 'bad request'
+    }), 400
 
 
 ''' Receive the raised authorization error and propagates it as response. '''
