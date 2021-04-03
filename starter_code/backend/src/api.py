@@ -18,24 +18,24 @@ CORS(app)
 @app.after_request
 def after_request(response):
     response.headers.add(
-    'Access-control-Allow-Headers',
-     'Content-Type, Authorization')
+        'Access-control-Allow-Headers',
+        'Content-Type, Authorization')
     response.headers.add(
-    'Access-control-Allow-Methods',
-     'GET, POST, PATCH, DELETE, OPTIONS')
+        'Access-control-Allow-Methods',
+        'GET, POST, PATCH, DELETE, OPTIONS')
 
     return response
 
 
 # ROUTES
 
-
-""" 
-Public permission. 
-This API fetches all drinks with a short description. 
-Return the drinks array or the error handler 
+"""
+Public permission.
+This API fetches all drinks with a short description.
+Return the drinks array or the error handler
 
 """
+
 
 @app.route('/drinks', methods=['GET'])
 def drinks_menu():
@@ -52,22 +52,20 @@ def drinks_menu():
     }), 200
 
 
+"""
+get:drinks-detail permission.
+This API fetches all drinks with a long description.
+Returns the drinks array or the error handler.
 
- """ 
- get:drinks-detail permission.
- This API fetches all drinks with a long description. 
- Returns the drinks array or the error handler 
- 
- """
+"""
+
 
 @app.route('/drinks-detail', methods=['GET'])
 @requires_auth('get:drinks-detail')
 def drink_details(payload):
     all_drinks = Drink.query.order_by(Drink.id).all()
-    
     if all_drinks is None:
         abort(404)
-    
     drinks = [drink.long() for drink in all_drinks]
 
     return jsonify({
@@ -76,19 +74,18 @@ def drink_details(payload):
     }), 200
 
 
-
-""" 
+"""
 post:drinks permission.
-This API creates a new drink and returns its long description. 
-Return the created drink info or the error handler 
+This API creates a new drink and returns its long description.
+Return the created drink info or the error handler.
 
 """
-     
+
+
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def add_drink(payload):
     req = request.get_json()
-    
     title = req.get('title')
     recipe = req.get('recipe')
 
@@ -105,13 +102,13 @@ def add_drink(payload):
         abort(405)
 
 
-
-""" 
+"""
 patch:drinks permission.
-This API updates a drink if it exists. 
-Return the updated drink info or the error handler
+This API updates a drink if it exists.
+Return the updated drink info or the error handler.
 
 """
+
 
 @app.route('/drinks/<int:id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
@@ -124,7 +121,6 @@ def update_drinks(payload, id):
 
     if drink is None:
         abort(404)
-    
     try:
         drink.title = title
         drink.recipe = json.dumps(recipe)
@@ -138,13 +134,13 @@ def update_drinks(payload, id):
 
     except Exception as e:
         abort(422)
-        
 
-""" 
-delete:drinks permission.This API deletes a drink if it exists. 
+"""
+delete:drinks permission.This API deletes a drink if it exists.
 Return the deleted drink info or the error handler.
 
 """
+
 
 @app.route('/drinks/<int:id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
@@ -153,7 +149,6 @@ def delete_drinks(payload, id):
 
     if drink is None:
         abort(404)
-    
     try:
         drink.delete()
 
@@ -168,29 +163,34 @@ def delete_drinks(payload, id):
 
 # Error Handling
 '''
-Example error handling for unprocessable entity
+Example error handling for unprocessable entity.
 '''
+
+
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-        "success": False, 
+        "success": False,
         "error": 422,
         "message": "unprocessable"
     }), 422
 
 
-''' Propagates the formatted 404 error to the response '''
+''' Propagates the formatted 404 error to the response. '''
+
+
 @app.errorhandler(404)
 def unprocessable(error):
     return jsonify({
-         "success": False, 
+         "success": False,
          "error": 404,
          "message": "resource not found"
     }), 404
 
 
+''' Error handler for incorrect method type. ''''
 
-''' Error handler for incorrect method type ''''
+
 @app.errorhandler(405)
 def method_not_allowed(error):
     return jsonify({
@@ -200,8 +200,9 @@ def method_not_allowed(error):
     }), 405
 
 
+''' Receive the raised authorization error and propagates it as response. '''
 
- ''' Receive the raised authorization error and propagates it as response '''
+
 @app.errorhandler(AuthError)
 def handle_auth_error(ex):
     response = jsonify(ex.error)

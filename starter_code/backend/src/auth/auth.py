@@ -26,6 +26,8 @@ class AuthError(Exception):
 
 
 """ Obtains the access token from the Authorization Header """
+
+
 def get_token_auth_header():
     auth_header = request.headers.get('Authorization', None)
 
@@ -57,8 +59,9 @@ def get_token_auth_header():
     return token
 
 
-
 """ Receives the encoded token and validates it after decoded """
+
+
 def verify_decode_jwt(token):
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
@@ -102,7 +105,9 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'invalid_claims',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
+                'description':
+                    'Incorrect claims.'
+                    'Please check the audience and issuer.'
             }, 401)
 
         except Exception:
@@ -118,6 +123,8 @@ def verify_decode_jwt(token):
 
 
 """ Helper which checks if the decoded JWT has the required permission """
+
+
 def check_permissions(permission, payload):
 
     if 'permissions' not in payload:
@@ -127,13 +134,12 @@ def check_permissions(permission, payload):
         }, 400)
 
     if permission not in payload['permissions']:
-         raise AuthError({
+        raise AuthError({
              'code': 'unauthorized',
              'description': 'Permission not found.'
         }, 403)
 
     return True
-
 
 
 def requires_auth(permission=''):
@@ -143,7 +149,6 @@ def requires_auth(permission=''):
             token = get_token_auth_header()
             payload = verify_decode_jwt(token)
             check_permissions(permission, payload)
-            
             return f(payload, *args, **kwargs)
 
         return wrapper
